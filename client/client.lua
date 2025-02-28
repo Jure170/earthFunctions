@@ -102,7 +102,7 @@ RegisterNetEvent("earth:openContextMenu", function(items)
     ContextMenuOpen(items)
 end)
 
-RegisterCommand("johny", function()
+RegisterCommand("earthInput", function()
     TriggerEvent('earth:openInput', {
         title = 'Primjer Naslova',
         inputs = {
@@ -129,7 +129,7 @@ RegisterNUICallback('triggerEvent', function(data, cb)
     cb('ok')
 end)
 
-RegisterCommand("context", function()
+RegisterCommand("earthContext", function()
     local items = {
         title = "Title Tile",
         menuItems = {
