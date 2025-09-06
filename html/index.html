@@ -255,7 +255,6 @@
             border-radius: 4px;
         }
 
-        /* Pojedinačni "blip" (stavka u meniju) */
         .blip {
             display: flex;
             align-items: center;
@@ -264,15 +263,13 @@
             border-radius: 8px;
             border-bottom: 2.5px solid #3a3939;
             cursor: pointer;
-            margin-bottom: 10px; /* Razmak između boxova */
+            margin-bottom: 10px;
         }
 
-        /* Hover efekat za stavke */
         .blip:hover {
             background: #3a3a54;
         }
 
-        /* Ikonica u boxu */
         .icon-box {
             width: 40px;
             height: 40px;
@@ -283,13 +280,11 @@
             border-radius: 50%;
         }
 
-        /* Tekstualni deo boxa */
         .text-box {
             display: flex;
             flex-direction: column;
         }
 
-        /* Naslov (label) */
         .text-box .label {
             font-size: 16px;
             font-weight: bold;
@@ -297,7 +292,6 @@
             margin-bottom: 4px;
         }
 
-        /* Opis (description) */
         .text-box .details {
             font-size: 13px;
             color: #b0b0b0;
@@ -390,6 +384,67 @@
             background: #1b911b;
         }
 
+
+        .dialog {
+            background-color: #1e1e2f;
+            color: #f0f0f0;
+            padding: 30px;
+            border-radius: 12px;
+            width: 520px;
+            box-shadow: 0 6px 30px rgba(0, 0, 0, 0.6);
+            transition: transform 0.3s ease;
+        }
+
+        .dialog h2 {
+            margin-top: 0;
+            margin-bottom: 18px;
+            font-size: 22px;
+            color: #ffffff;
+        }
+
+        .dialog p {
+            font-size: 15px;
+            line-height: 1.6;
+            color: #dcdcdc;
+        }
+
+        .buttons {
+            margin-top: 25px;
+            display: flex;
+            justify-content: flex-end;
+            gap: 12px;
+        }
+
+        .btn {
+            padding: 10px 20px;
+            font-size: 14px;
+            border: none;
+            border-radius: 6px;
+            cursor: pointer;
+            transition: background-color 0.25s, transform 0.2s;
+        }
+
+        .odbij {
+            background: #ff0000d2; 
+            border-color: #600000;
+            color: white;
+        }
+
+        .odbij:hover {
+            background: #851212;
+        }
+
+        .prihvati {
+            background: #0ad60ac4; 
+            border-color: #004d00;
+            color: white;
+        }
+
+        .prihvati:hover {
+            background: #1b911b;
+        }
+
+
     </style>
     <script>
         $(function() {
@@ -406,6 +461,8 @@
                     $("#contextMenu").hide();
                 } else if (data.action === 'updateContextMenu') {
                     updateContextMenu(data.items);
+                } else if (data.action === 'openDialog') {
+                    openDialog(data.title, data.message); 
                 } else if (data.action === 'showPin') {  
                     $("#pinFunction").show();
                     correctPin = data.pin || "";
@@ -416,8 +473,36 @@
 
 
 
-            document.onkeyup = e => e.which === 27 && $.post('https://earthFunctions/closeMenu', '{}');
+            document.onkeyup = e => {
+                if (e.which === 27) {
+                    if ($('#customDialog').length > 0) {
+                        respondDialog(false);
+                    }
+                    $.post('https://earthFunctions/closeMenu', '{}');
+                }
+            };
         });
+
+        function openDialog(title, message) {
+            $('#customDialog').remove();
+
+            const dialogHTML = `
+                <div class="dialog" id="customDialog">
+                    <h2>${title}</h2>
+                    <p>${message.replace(/\n/g, '<br>')}</p>
+                    <div class="buttons">
+                        <button class="btn odbij" onclick="respondDialog(false)">DECLINE</button>
+                        <button class="btn prihvati" onclick="respondDialog(true)">ACCEPT</button>
+                    </div>
+                </div>
+            `;
+            $('body').append(dialogHTML);
+        }
+
+        function respondDialog(accepted) {
+            $.post(`https://${GetParentResourceName()}/dialogResponse`, JSON.stringify({ accepted }));
+            $('#customDialog').remove();
+        }
 
 
             
@@ -442,12 +527,10 @@
 
         function updateContextMenu(data) {
             const blipList = $('#blip-list').empty();
-            const menuTitle = data.title || "Default Title";  // Uzmi title iz podataka, ili zadani naslov
+            const menuTitle = data.title || "Default Title";
 
-            // Postavljamo title u header
-            $('#contextMenu .header').text(menuTitle);  // Pronađi header i postavi title
+            $('#contextMenu .header').text(menuTitle);
 
-            // Iteriraj kroz menuItems i kreiraj blipove
             data.menuItems.forEach(item => {
                 const blip = $('<div class="blip">').append(`
                     <div class="icon-box">
@@ -511,12 +594,8 @@
         });
 
 
-
-
-
-
         let pin = "";
-        let correctPin = ""; // Dinamički postavljen PIN
+        let correctPin = ""; 
 
         function appendNumber(num) {
             if (pin.length < 4) { 
@@ -550,7 +629,6 @@
                 document.getElementById("screen").textContent = "Wrong PIN!";
                 document.getElementById("screen").style.color = "red";
 
-                // Šaljemo Lua client-side skripti da je PIN pogrešan
                 fetch(`https://${GetParentResourceName()}/checkPin`, {
                     method: "POST",
                     headers: {"Content-Type": "application/json"},
@@ -564,7 +642,6 @@
     
 </head>
 <body>
-    <!-- Input Menu -->
     <div id="johnyKastm">
         <div class="container">
         </div>
@@ -589,7 +666,7 @@
     </div>
 
     <div id="contextMenu" style="display:none">
-        <div class="header">Outfit Menu</div> <!-- Ovaj title će biti promenjen -->
+        <div class="header">Outfit Menu</div>
         <div class="blip-list" id="blip-list"></div>
         <button class="close-btn" onclick="closeMenu()">Close</button>
     </div>
